@@ -1,36 +1,38 @@
 #!/usr/bin/awk -f
-BEGIN { prevLine = "" }
 
-function findNextMatch(matchString, startIndex, pattern) {
-  print "startIndex: "startIndex" ------------------"
-  where = match(substr(matchString, startIndex), pattern)
-
-  if (RLENGTH == -1)
-    return -1
-  
-  return where+startIndex 
-}
+BEGIN { sum = 0 }
 
 {
-  getline nextLine
-
-  nextNumIdx = 0
-  RLENGTH = 0
-  while (nextNumIdx+RLENGTH < length($0)) {
-    print "Line: "$0
-    print "Index: "nextNumIdx
-    nextNumIdx = findNextMatch($0, nextNumIdx+RLENGTH, "[0-9]+")
-  
-    if (RLENGTH == -1)
-      next
-
-    print "Index and rlength: "nextNumIdx " " RLENGTH
-    print "substring: "substr($0, nextNumIdx-1, RLENGTH)
-  
-  }
-  
+  prevLine = currLine
+  currLine = nextLine
+  nextLine = $0
 }
 
-{ prevLine = $0 }
+FNR >= 2 {
+  currLineCopy = currLine
+  while (match(currLineCopy, /[0-9]+/)) {
+    number = substr(currLine, RSTART, RLENGTH);
 
-END {}
+    # Replace num with spaces according to length ("123" > "   ")
+    spaces = sprintf("%*s", length(number), " ")
+    sub(/[0-9]+/, spaces, currLineCopy)
+
+    bounds["min"] = RSTART > 1 ? RSTART - 1 : RSTART
+    bounds["max"] = RSTART > 1 ? RLENGTH + 2 : RLENGTH + 1
+
+    check["prev"] = substr(prevLine, bounds["min"], bounds["max"])
+    check["curr"] = substr(currLine, bounds["min"], bounds["max"])
+    check["next"] = substr(nextLine, bounds["min"], bounds["max"])
+
+    for (key in check) {
+      match(check[key], /[^0-9\.]/)
+
+      if (RLENGTH != -1) {
+        sum += number
+        break
+      }
+    }
+  }
+}
+
+END { print "Total: " sum }

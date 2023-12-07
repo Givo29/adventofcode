@@ -5,15 +5,9 @@ BEGIN {
 }
 
 function getNextMapping(current_list, map) {
-  dest = map[1]
-  src = map[2]
-  rng = map[3]
-
-  offset = dest - src
-
   for (key in current_list) {
-    if (current_list[key] >= src && current_list[key] < src + rng) {
-      new_mapping[current_list[key]] = current_list[key] + offset 
+    if (current_list[key] >= map[2] && current_list[key] < map[2] + map[3]) {
+      new_mapping[current_list[key]] = current_list[key] + map[1] - map[2] 
     } else {
       if (current_list[key] in new_mapping)
         continue

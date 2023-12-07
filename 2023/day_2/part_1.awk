@@ -13,7 +13,7 @@ BEGIN {
   split($0, games, /:|;/)
   for (i = 2; i <= length(games); i++) {
     gsub(", ", ",", games[i])
-    gsub("^ ", "", games[i])
+    sub("^ ", "", games[i])
     
     # Split games into handfulls
     split(games[i], handfulls, /,/)

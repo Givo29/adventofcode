@@ -35,4 +35,4 @@ FNR >= 2 {
   }
 }
 
-END { print "Total: " sum }
+END { print sum }

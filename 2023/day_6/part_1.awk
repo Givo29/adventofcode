@@ -8,10 +8,8 @@ BEGIN {
 
 {
   split($0, a, /\n/)
-  gsub(/ +/, " ", a[1])
-  gsub(/ +/, " ", a[2])
-  split(a[1], times, / /)
-  split(a[2], distances, / /)
+  split(a[1], times, / +/)
+  split(a[2], distances, / +/)
 
   for(i = 2; i <= length(times); i++) {
     running_total = 0

@@ -4,19 +4,6 @@ BEGIN {
   RS=""
 }
 
-function getNextMapping(current_list, map) {
-  for (key in current_list) {
-    if (current_list[key] >= map[2] && current_list[key] < map[2] + map[3]) {
-      new_mapping[current_list[key]] = current_list[key] + map[1] - map[2] 
-    } else {
-      if (current_list[key] in new_mapping)
-        continue
-
-      new_mapping[current_list[key]] = current_list[key]
-    }
-  }
-}
-
 function getNextRangeMapping(current_list, map) {
   dest = map[1]
   src = map[2]
@@ -25,38 +12,39 @@ function getNextRangeMapping(current_list, map) {
   offset = dest - src
 
   min_src = src
-  max_src = src + rng
+  max_src = src + rng-1
 
   for (key in current_list) {
     split(current_list[key], map_rng, /\:/)
-    if (map_rng[1] >= min_src && map_rng[2] < max_src) {
-      # within
-      new_list[current_list[key]] = map_rng[1] + offset ":" map_rng[2] + offset
-      continue
+    min_rng = map_rng[1]
+    max_rng = map_rng[2]
+
+    # Within
+    if (min_rng >= min_src && max_rng <= max_src) {
+      new_list[current_list[key] "within"] = min_rng + offset ":" max_rng + offset
     }
 
-    if (map_rng[1] >= min_src && map_rng[1] < max_src && map_rng[2] >= max_src) {
-      # upper
-      new_list[current_list[key]] = max_src ":" map_rng[2]
-      new_list[current_list[key] "upper"] = map_rng[1] + offset ":" max_src + offset
-      continue
+    # Starting below
+    if ((min_rng >= min_src && min_rng <= max_src) && max_rng > max_src) {
+      new_list[current_list[key] "upper within"] = min_rng + offset ":" max_src + offset
+      new_list[current_list[key] "upper above"] = max_src ":" max_rng
     }
 
-    if (map_rng[1] < min_src && map_rng[2] >= min_src && map_rng[2] < max_src) {
-      # lower
-      new_list[current_list[key]] = map_rng[1] ":" min_src
-      new_list[current_list[key] "lower"] = min_src + offset ":" map_rng[2] + offset
-      continue
+    # Ending above
+    if (min_rng < min_src && (max_rng >= min_src && max_rng <= max_src)) {
+      new_list[current_list[key] "lower within"] = min_src + offset ":" max_rng + offset
+      new_list[current_list[key] "lower below"] = min_rng ":" min_src 
+    }
+    
+    # Around
+    if (min_rng < min_src && max_rng > max_src) {
+      new_list[current_list[key] "aruond below"] = min_rng ":" min_src 
+      new_list[current_list[key] "around both"] = min_src + offset ":" max_src + offset
+      new_list[current_list[key] "around above"] = max_src ":" max_rng
     }
 
-    if (map_rng[1] < min_src && map_rng[2] >= max_src) {
-      new_list[current_list[key] "neither upper"] = map_rng[1] ":" min_src 
-      new_list[current_list[key]] = min_src + 1 + offset ":" max_src + offset
-      new_list[current_list[key] "neither lower"] = max_src ":" map_rng[2]
-      continue
-    }
-
-    new_list[current_list[key]] = current_list[key]
+		# Not in at all
+    new_list[current_list[key] "same"] = current_list[key]
   }
 }
 

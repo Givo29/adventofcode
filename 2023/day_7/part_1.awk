@@ -1,26 +1,75 @@
 #!/usr/bin/awk -f
 
 BEGIN {
-  WHINY_USERS=1
+  ranks["T"] = 10
+  ranks["J"] = 11
+  ranks["Q"] = 12
+  ranks["K"] = 13
+  ranks["A"] = 14
 }
 
-function sortCardCopies(arr,    a, i) {
-  # Copy orig array into temp array
-  for (key in arr)
-    a[key] = arr[key]
+{ 
+  print "----------------------"
+  findCardCopies($1)
+  joinedCards = join(copies)
+  split(joinedCards, copies, /,/)
+  n = ALength(copies)
+  isort(copies, n)
+   
+  label = "high"
+  for (i = 1; i < n; i++) {
+    if (copies[i] == 5) {
+      label = "5"
+      break
+      
+    if (copies[i] == 4) {
+      label = "4"
+      break
 
-  for (i = 1; i <= length(a); i++) {
-    for (j = 1; j <= length(a) - i - 1; j++) {
-      if (a[j] > a[j + 1]) {
-        a[j] = a[j + 1]
-        a[j + 1] = a[j]
-      }
+    if (copies[i] == 3 && copies[i+1] == 2) {
+      label = "full"
+      break
+      
+    if (copies[i] == 3 && copies[i+1] == 1) {
+      label = "3"
+      break
+
+    if (copies[i] == 2 && copies[i+1] == 2) {
+      label = "2"
+      break
+
+    if (copies[i] == 2 && copies[i+1] == 1) {
+      label = "1"
+      break
     }
   }
+}
 
-  # Copy temp array back to orig array
-  for (key in a) 
-    arr[key] = a[key]
+END {}
+
+function ALength(A,   i, n) {
+  n = 0
+  for (i in A) n++
+
+  return n
+}
+
+function join(A,    i, string) {
+  for (i in A) {
+    if (length(string) > 0)
+      string = A[i] "," string
+    else 
+      string = A[i]
+
+  }
+  return string
+}
+
+function isort(A, n,   i, j, t) {
+  for (i = 2; i <= n; i++)
+    for (j = i; j > 1 && A[j-1] < A[j]; j--) {
+      t = A[j-1]; A[j-1] = A[j]; A[j] = t
+    }
 }
 
 function insertAtIndex(arr, idx, value,    a, i) {
@@ -41,7 +90,9 @@ function insertAtIndex(arr, idx, value,    a, i) {
     arr[key] = a[key]
 }
 
-function calculateHandLabel(hand,   cards, i, copies) {
+function findCardCopies(hand,   cards, i) {
+  delete copies
+
   split(hand, cards, //)
 
   for (i = 1; i <= length(cards); i++) {
@@ -52,21 +103,4 @@ function calculateHandLabel(hand,   cards, i, copies) {
 
     copies[cards[i]] = 1
   }
-
-  for (key in copies) {
-    print key ": " copies[key]
-  }
 }
-
-NR == 1 { 
-  marr[1] = 4
-  marr[2] = 3
-  marr[3] = 5
-
-  sortCardCopies(marr)
-
-  for (key in marr)
-    print key ": " marr[key]
-}
-
-END {}

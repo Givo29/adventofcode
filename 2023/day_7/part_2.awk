@@ -9,8 +9,8 @@ BEGIN {
   labelRanks["4 kind"] = 6
   labelRanks["5 kind"] = 7
 
+  ranks["J"] = 1
   ranks["T"] = 10
-  ranks["J"] = 11
   ranks["Q"] = 12
   ranks["K"] = 13
   ranks["A"] = 14
@@ -18,11 +18,16 @@ BEGIN {
 
 { 
   findCardCopies($1)
+  jacks = 0
+  if ("J" in copies)
+    jacks = copies["J"]
   joinedCards = join(copies)
   split(joinedCards, copies, /,/)
   isort(copies, length(copies))
    
   label = "high"
+  if (jacks > 0)
+    label = "pair"
   for (i = 1; i <= length(copies); i++) {
     if (copies[i] == 5) {
       label = "5 kind"
@@ -31,26 +36,45 @@ BEGIN {
       
     if (copies[i] == 4) {
       label = "4 kind"
+
+      if (jacks > 0)
+        label = "5 kind"
       break
     }
 
     if (copies[i] == 3 && copies[i+1] == 2) {
       label = "full"
+
+      if (jacks == 1)
+        label = "4 kind"
+      if (jacks > 1)
+        label = "5 kind"
       break
     }
       
     if (copies[i] == 3 && copies[i+1] == 1) {
       label = "3 kind"
+
+      if (jacks > 0)
+        label = "4 kind"
       break
     }
 
     if (copies[i] == 2 && copies[i+1] == 2) {
       label = "2 pair"
+
+      if (jacks == 1)
+        label = "full"
+      if (jacks == 2)
+        label = "4 kind"
       break
     }
 
     if (copies[i] == 2 && copies[i+1] == 1) {
       label = "pair"
+
+      if (jacks > 0)
+        label = "3 kind"
     }
   }
 
